@@ -31,8 +31,10 @@ public class Device extends IflDevice
     */
     public Device(int id, int numberOfBlocks)
     {
-        // your code goes here
 
+	    super(id,numberOfBlocks);
+	    iorbQueue = (GenericQueueInterface) new ArrayList();
+	    
     }
 
     /**
@@ -66,8 +68,38 @@ public class Device extends IflDevice
     */
     public int do_enqueueIORB(IORB iorb)
     {
-        // your code goes here
-
+        
+    	/**
+    	 * locking the page associated with iorb
+    	 */
+    	
+    	iorb.getPage().lock(iorb);
+    	iorb.getOpenFile().incrementIORBCount();
+    	
+    	/**
+    	 * to calculate number of blocks in a track.
+    	 */
+    	
+    	// tracks -> blocks -> sectors 
+    	int bytes_in_a_block = ((int) Math.pow(2, (MMU.getVirtualAddressBits() - MMU.getPageAddressBits())));
+    	int blocks_in_a_sector = bytes_in_a_block/((Disk)this).getBytesPerSector();
+    	int blocks_in_a_track = ((Disk)this).getSectorsPerTrack()/blocks_in_a_sector;
+    	int cylinder = (int)(iorb.getBlockNumber()/blocks_in_a_track * ((Disk)this).getPlatters());
+    	
+    	// setting the cylinder
+    	iorb.setCylinder(cylinder);
+    	
+    	if(iorb.getThread().getStatus() == ThreadKill)
+    		return FAILURE;
+    	
+    	if(isBusy()) {
+    		((ArrayList) iorbQueue).add(iorb);
+    		return SUCCESS;
+    	}
+    	
+    	// if the device is IDLE
+    	startIO(iorb);
+    	return SUCCESS;
     }
 
     /**
@@ -78,8 +110,9 @@ public class Device extends IflDevice
     */
     public IORB do_dequeueIORB()
     {
-        // your code goes here
-
+        
+ 
+    	return null;
     }
 
     /**

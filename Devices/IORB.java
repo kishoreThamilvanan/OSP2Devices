@@ -25,7 +25,8 @@ public class IORB extends IflIORB
     public IORB(ThreadCB thread, PageTableEntry page, 
 		int blockNumber, int deviceID, 
 		int ioType, OpenFile openFile) {
-        // your code goes here
+    	
+ 	   super(thread,page,blockNumber,deviceID,ioType,openFile);
 
     }
 
