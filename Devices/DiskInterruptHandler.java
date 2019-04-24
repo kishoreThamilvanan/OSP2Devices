@@ -42,8 +42,8 @@ public class DiskInterruptHandler extends IflDiskInterruptHandler
     */
     public void do_handleInterrupt()
     {
-        // your code goes here
 
+    	
     }
 
 

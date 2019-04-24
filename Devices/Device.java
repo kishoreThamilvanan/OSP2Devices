@@ -93,7 +93,7 @@ public class Device extends IflDevice
     		return FAILURE;
     	
     	if(isBusy()) {
-    		((ArrayList) iorbQueue).add(iorb);
+    		((ArrayList) iorbQueue).add(iorbQueue.length(), iorb);;
     		return SUCCESS;
     	}
     	
@@ -110,9 +110,13 @@ public class Device extends IflDevice
     */
     public IORB do_dequeueIORB()
     {
-        
- 
-    	return null;
+    	
+    	//is the queue is empty then return null
+    	if(iorbQueue.length() == 0)
+    		return null;
+    
+    	return  (IORB)(((ArrayList) iorbQueue).remove(0));
+    	
     }
 
     /**
@@ -130,8 +134,28 @@ public class Device extends IflDevice
     */
     public void do_cancelPendingIO(ThreadCB thread)
     {
-        // your code goes here
-
+    	IORB tiorb = null;
+        
+    	if(thread.getStatus() == ThreadKill) {
+	    	int i=-1;
+	    	while(++i<iorbQueue.length()) {
+	    
+	    		tiorb = (IORB)(((ArrayList) iorbQueue).get(i));
+	    		
+	    		// for each IORB associated thread.
+	    		if(tiorb.getThread() == thread) {
+	    			
+	    			tiorb.getPage().unlock();
+	    			tiorb.getOpenFile().decrementIORBCount();
+	    			
+	    			if(tiorb.getOpenFile().getIORBCount() == 0)
+	    				if(tiorb.getOpenFile().closePending)
+	    					tiorb.getOpenFile().close();
+	    		
+	    			((ArrayList) iorbQueue).remove(tiorb);
+	    		}	    		
+	    	}
+       	}
     }
 
     /** Called by OSP after printing an error message. The student can
