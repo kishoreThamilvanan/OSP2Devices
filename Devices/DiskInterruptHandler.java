@@ -43,6 +43,91 @@ public class DiskInterruptHandler extends IflDiskInterruptHandler
     public void do_handleInterrupt()
     {
 
+		/*
+		 * 1. obtain info about the interrupt.
+		 */
+    	
+    	IORB iorb = (IORB) (InterruptVector.getEvent());
+    	
+		/*
+		 * 2. decrementIORBCount()
+		 */
+    	
+    	iorb.getOpenFile().decrementIORBCount();
+    	
+		/*
+		 * 3. 
+		 */    	
+    	
+    	if(iorb.getOpenFile().closePending && iorb.getOpenFile().getIORBCount() == 0) 
+    		iorb.getOpenFile().close();
+    	
+		/*
+		 * 4. The page associated with the IORB must be unlocked, because the I/O 
+		 * 		operation (due to which the page was locked) is over. 
+		 */
+    	
+    	iorb.getPage().unlock();
+    	
+		/*
+		 * 5. 
+		 * 
+		 */
+    	
+    	if(iorb.getDeviceID() != SwapDeviceID)
+    		if(iorb.getThread().getStatus() != ThreadKill) {
+    			
+    			iorb.getPage().getFrame().setDirty(true);
+    			if(iorb.getIOType() == FileRead)
+    				if(iorb.getThread().getTask().getStatus() == TaskLive)
+    					iorb.getPage().getFrame().setDirty(true);
+    		}
+    	
+    	
+		/*
+		 * 6.
+		 */
+    	
+    	if(iorb.getDeviceID() == SwapDeviceID && iorb.getThread().getTask().getStatus() == TaskLive)
+    		iorb.getPage().getFrame().setDirty(false);
+    	
+    	/*
+		 * 7.
+		 */
+    	
+    	if(iorb.getThread().getTask().getStatus() == TaskTerm && iorb.getThread().getTask() == iorb.getPage().getFrame().getReserved())
+    		iorb.getPage().getFrame().setUnreserved(iorb.getThread().getTask());
+    	
+    	/*
+		 * 8.
+		 */
+    	iorb.notifyThreads();
+    	
+    	/*
+		 * 9.
+		 */
+    	Device.get(iorb.getDeviceID()).setBusy(false);
+    	
+    	/*
+		 * 10.
+		 */
+    	IORB newIOrequest = Device.get(iorb.getDeviceID()).dequeueIORB();
+    	
+    	if(newIOrequest != null)
+    		Device.get(newIOrequest.getDeviceID()).startIO(newIOrequest);
+    	
+    	
+    	/*
+		 * 11.
+		 */
+    	iorb.getThread().dispatch();
+    	
+    	
+    	
+    	
+    	
+    	
+    	
     	
     }
 
