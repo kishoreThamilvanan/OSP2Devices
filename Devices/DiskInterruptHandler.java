@@ -122,13 +122,6 @@ public class DiskInterruptHandler extends IflDiskInterruptHandler
 		 */
     	iorb.getThread().dispatch();
     	
-    	
-    	
-    	
-    	
-    	
-    	
-    	
     }
 
 

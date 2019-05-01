@@ -33,7 +33,7 @@ public class Device extends IflDevice
     {
 
 	    super(id,numberOfBlocks);
-	    iorbQueue = (GenericQueueInterface) new ArrayList();
+	    iorbQueue = (GenericQueueInterface) new GenericList();
 	    
     }
 
@@ -82,9 +82,12 @@ public class Device extends IflDevice
     	
     	// tracks -> blocks -> sectors 
     	int bytes_in_a_block = ((int) Math.pow(2, (MMU.getVirtualAddressBits() - MMU.getPageAddressBits())));
+    	
     	int blocks_in_a_sector = bytes_in_a_block/((Disk)this).getBytesPerSector();
+    	
     	int blocks_in_a_track = ((Disk)this).getSectorsPerTrack()/blocks_in_a_sector;
-    	int cylinder = (int)(iorb.getBlockNumber()/blocks_in_a_track * ((Disk)this).getPlatters());
+    	
+    	int cylinder = (int)( iorb.getBlockNumber() / (blocks_in_a_track * ((Disk)this).getPlatters()));
     	
     	// setting the cylinder
     	iorb.setCylinder(cylinder);
@@ -93,7 +96,7 @@ public class Device extends IflDevice
     		return FAILURE;
     	
     	if(isBusy()) {
-    		((ArrayList) iorbQueue).add(iorbQueue.length(), iorb);;
+    		((GenericList) iorbQueue).append(iorb);
     		return SUCCESS;
     	}
     	
@@ -112,10 +115,10 @@ public class Device extends IflDevice
     {
     	
     	//is the queue is empty then return null
-    	if(iorbQueue.length() == 0)
+    	if(iorbQueue.isEmpty())
     		return null;
     
-    	return  (IORB)(((ArrayList) iorbQueue).remove(0));
+    	return  (IORB)(((GenericList) iorbQueue).removeHead());
     	
     }
 
