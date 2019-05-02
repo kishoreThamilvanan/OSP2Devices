@@ -1,4 +1,12 @@
 package osp.Devices;
+/**
+ * Name: Kishore Thamilvanan
+ * ID  : 111373510
+ * 
+ * I pledge my honor that all parts of this project were done by me individually, 
+ * without collaboration with anyone, and without consulting external 
+ * sources that help with similar projects.
+ */
 import java.util.*;
 import osp.IFLModules.*;
 import osp.Hardware.*;

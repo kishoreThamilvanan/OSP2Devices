@@ -1,6 +1,15 @@
 package osp.Devices;
 
 /**
+ * Name: Kishore Thamilvanan
+ * ID  : 111373510
+ * 
+ * I pledge my honor that all parts of this project were done by me individually, 
+ * without collaboration with anyone, and without consulting external 
+ * sources that help with similar projects.
+ */
+
+/**
     This class stores all pertinent information about a device in
     the device table.  This class should be sub-classed by all
     device classes, such as the Disk class.
@@ -19,6 +28,12 @@ import java.util.*;
 
 public class Device extends IflDevice
 {
+	
+	static IORB SSTF_iorb;
+	static int SSTF_cylinder;
+	static int head;
+	
+	
     /**
         This constructor initializes a device with the provided parameters.
 	As a first statement it must have the following:
@@ -45,8 +60,11 @@ public class Device extends IflDevice
     */
     public static void init()
     {
-        // your code goes here
-
+   
+    	SSTF_iorb = null;
+    	SSTF_cylinder = 0;
+    	head = 0;
+    	
     }
 
     /**
@@ -118,7 +136,34 @@ public class Device extends IflDevice
     	if(iorbQueue.isEmpty())
     		return null;
     
-    	return  (IORB)(((GenericList) iorbQueue).removeHead());
+		/*
+		 * in order to implement the SSTF we are going to find the minimum seek timed iorb first.
+		 */
+    	
+    	SSTF_iorb = (IORB) ((GenericList) iorbQueue).getAt(0);
+    	int i=-1;
+    	while(++i<iorbQueue.length()) {
+    		
+    		IORB ciorb = (IORB) ((GenericList) iorbQueue).getAt(i);
+    		
+    		// if the sstf of the current cylinder is lesser than the existing SSTF cylinder then assign the cylinder with the SSTF.
+    		if((Math.abs(SSTF_cylinder - ciorb.getCylinder())) < (Math.abs(SSTF_cylinder - SSTF_iorb.getCylinder())))    			
+    			SSTF_iorb = ciorb;
+    	}
+    	
+    	
+		// now we dispatch/ remove the iorb with the SSTF cylinder from the existing iorbQueue 
+		((GenericList) iorbQueue).remove(SSTF_iorb);
+		
+		//now we set the distance travelled by the head and the SSTF cylinder.
+		head += Math.abs(SSTF_cylinder - SSTF_iorb.getCylinder());
+		SSTF_cylinder = SSTF_iorb.getCylinder();
+		
+		return SSTF_iorb;
+	
+		
+    	
+    	//return  (IORB)(((GenericList) iorbQueue).removeHead());
     	
     }
 
