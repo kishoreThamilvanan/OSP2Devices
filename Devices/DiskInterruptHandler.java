@@ -19,7 +19,7 @@ public class DiskInterruptHandler extends IflDiskInterruptHandler
 {
     /** 
         Handles disk interrupts. 
-        
+      
         This method obtains the interrupt parameters from the 
         interrupt vector. The parameters are IORB that caused the 
         interrupt: (IORB)InterruptVector.getEvent(), 
@@ -77,7 +77,7 @@ public class DiskInterruptHandler extends IflDiskInterruptHandler
     	if(iorb.getDeviceID() != SwapDeviceID)
     		if(iorb.getThread().getStatus() != ThreadKill) {
     			
-    			iorb.getPage().getFrame().setDirty(true);
+    			iorb.getPage().getFrame().setReferenced(true);
     			if(iorb.getIOType() == FileRead)
     				if(iorb.getThread().getTask().getStatus() == TaskLive)
     					iorb.getPage().getFrame().setDirty(true);

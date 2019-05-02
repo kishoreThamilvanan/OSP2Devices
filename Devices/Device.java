@@ -143,7 +143,7 @@ public class Device extends IflDevice
 	    	int i=-1;
 	    	while(++i<iorbQueue.length()) {
 	    
-	    		tiorb = (IORB)(((ArrayList) iorbQueue).get(i));
+	    		tiorb = (IORB)(((GenericList) iorbQueue).getAt(i));
 	    		
 	    		// for each IORB associated thread.
 	    		if(tiorb.getThread() == thread) {
@@ -155,7 +155,7 @@ public class Device extends IflDevice
 	    				if(tiorb.getOpenFile().closePending)
 	    					tiorb.getOpenFile().close();
 	    		
-	    			((ArrayList) iorbQueue).remove(tiorb);
+	    			((GenericList) iorbQueue).remove(tiorb);
 	    		}	    		
 	    	}
        	}
