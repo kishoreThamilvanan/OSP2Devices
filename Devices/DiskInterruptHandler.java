@@ -86,6 +86,7 @@ public class DiskInterruptHandler extends IflDiskInterruptHandler
     		if(iorb.getThread().getStatus() != ThreadKill) {
     			
     			iorb.getPage().getFrame().setReferenced(true);
+    			
     			if(iorb.getIOType() == FileRead)
     				if(iorb.getThread().getTask().getStatus() == TaskLive)
     					iorb.getPage().getFrame().setDirty(true);

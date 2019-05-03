@@ -92,23 +92,13 @@ public class Device extends IflDevice
     	 */
     	
     	iorb.getPage().lock(iorb);
-    	iorb.getOpenFile().incrementIORBCount();
     	
-    	/**
-    	 * to calculate number of blocks in a track.
-    	 */
+    	if(iorb.getThread().getStatus() != ThreadKill)
+    		iorb.getOpenFile().incrementIORBCount();
     	
-    	// tracks -> blocks -> sectors 
-    	int bytes_in_a_block = ((int) Math.pow(2, (MMU.getVirtualAddressBits() - MMU.getPageAddressBits())));
-    	
-    	int blocks_in_a_sector = bytes_in_a_block/((Disk)this).getBytesPerSector();
-    	
-    	int blocks_in_a_track = ((Disk)this).getSectorsPerTrack()/blocks_in_a_sector;
-    	
-    	int cylinder = (int)( iorb.getBlockNumber() / (blocks_in_a_track * ((Disk)this).getPlatters()));
-    	
+    	    	
     	// setting the cylinder
-    	iorb.setCylinder(cylinder);
+    	iorb.setCylinder(calculate_cylinder(iorb));
     	
     	if(iorb.getThread().getStatus() == ThreadKill)
     		return FAILURE;
@@ -121,6 +111,33 @@ public class Device extends IflDevice
     	// if the device is IDLE
     	startIO(iorb);
     	return SUCCESS;
+    }
+    
+    public int calculate_cylinder(IORB iorb) {
+    	
+    	/**
+    	 * to calculate number of blocks in a track.
+    	 */
+    	
+		/*
+		 * A track consists of a number of blocks, which in turn consists of a number of sectors. 
+		 * To find the block size, you can use the functions getVirtualAddress-Bits() and getPageAddressBits(), 
+		 * since the size of a disk block equals the size of a main-memory page. The block size together with the sector size
+		 * (getBytesPerSector()) gives the number of sectors in a block. 
+		 * The number of blocks per track can be used to compute the track that holds the given block. 
+		 * To compute the cylinder number corresponding to the block you need to know the number of tracks per cylinder.
+		 */
+    	
+    	// tracks -> blocks -> sectors 
+    	int bytes_in_a_block = ((int) Math.pow(2, (MMU.getVirtualAddressBits() - MMU.getPageAddressBits())));
+    	
+    	int blocks_in_a_sector = bytes_in_a_block/((Disk)this).getBytesPerSector();
+    	
+    	int blocks_in_a_track = ((Disk)this).getSectorsPerTrack()/blocks_in_a_sector;
+    	
+    	int cylinder = (int)( iorb.getBlockNumber() / (blocks_in_a_track * ((Disk)this).getPlatters()));
+
+    	return cylinder;
     }
 
     /**
@@ -135,12 +152,16 @@ public class Device extends IflDevice
     	//is the queue is empty then return null
     	if(iorbQueue.isEmpty())
     		return null;
+    	
     
 		/*
 		 * in order to implement the SSTF we are going to find the minimum seek timed iorb first.
 		 */
     	
     	SSTF_iorb = (IORB) ((GenericList) iorbQueue).getAt(0);
+    	SSTF_cylinder = ((Disk) this).getHeadPosition();
+ 
+    	
     	int i=-1;
     	while(++i<iorbQueue.length()) {
     		
