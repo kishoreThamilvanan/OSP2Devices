@@ -31,7 +31,6 @@ public class Device extends IflDevice
 	
 	static IORB SSTF_iorb;
 	static int SSTF_cylinder;
-	static int head;
 	
 	
     /**
@@ -62,9 +61,7 @@ public class Device extends IflDevice
     {
    
     	SSTF_iorb = null;
-    	SSTF_cylinder = 0;
-    	head = 0;
-    	
+    	SSTF_cylinder = 0;    	
     }
 
     /**
@@ -177,15 +174,15 @@ public class Device extends IflDevice
 		((GenericList) iorbQueue).remove(SSTF_iorb);
 		
 		//now we set the distance travelled by the head and the SSTF cylinder.
-		head += Math.abs(SSTF_cylinder - SSTF_iorb.getCylinder());
 		SSTF_cylinder = SSTF_iorb.getCylinder();
 		
 		return SSTF_iorb;
 	
 		
-    	
-    	//return  (IORB)(((GenericList) iorbQueue).removeHead());
-    	
+		/*
+		 * FIFO technique
+		 * return (IORB)(((GenericList) iorbQueue).removeHead());
+		 */
     }
 
     /**

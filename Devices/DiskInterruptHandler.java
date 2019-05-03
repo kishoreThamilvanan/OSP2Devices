@@ -50,6 +50,9 @@ public class DiskInterruptHandler extends IflDiskInterruptHandler
     */
     public void do_handleInterrupt()
     {
+    	
+    	
+    	
 
 		/*
 		 * 1. obtain info about the interrupt.
@@ -57,39 +60,46 @@ public class DiskInterruptHandler extends IflDiskInterruptHandler
     	
     	IORB iorb = (IORB) (InterruptVector.getEvent());
     	
+    	
+    	OpenFile iorbOpenFile = iorb.getOpenFile();
+    	
 		/*
 		 * 2. decrementIORBCount()
 		 */
     	
-    	iorb.getOpenFile().decrementIORBCount();
+    	iorbOpenFile.decrementIORBCount();
     	
 		/*
 		 * 3. 
 		 */    	
     	
-    	if(iorb.getOpenFile().closePending && iorb.getOpenFile().getIORBCount() == 0) 
-    		iorb.getOpenFile().close();
+    	if(iorbOpenFile.closePending && iorbOpenFile.getIORBCount() == 0) 
+    		iorbOpenFile.close();
     	
 		/*
 		 * 4. The page associated with the IORB must be unlocked, because the I/O 
 		 * 		operation (due to which the page was locked) is over. 
 		 */
     	
-    	iorb.getPage().unlock();
+    	PageTableEntry iorbPage = iorb.getPage();
+    	iorbPage.unlock();
     	
 		/*
 		 * 5. 
 		 * 
 		 */
     	
+    	FrameTableEntry iorbPageFrame = iorbPage.getFrame();
+    	ThreadCB iorbThread = iorb.getThread();
+    	
     	if(iorb.getDeviceID() != SwapDeviceID)
-    		if(iorb.getThread().getStatus() != ThreadKill) {
+    		if(iorbThread.getStatus() != ThreadKill) {
     			
-    			iorb.getPage().getFrame().setReferenced(true);
+    			iorbPageFrame.setReferenced(true);
     			
     			if(iorb.getIOType() == FileRead)
-    				if(iorb.getThread().getTask().getStatus() == TaskLive)
-    					iorb.getPage().getFrame().setDirty(true);
+    				if(iorbThread.getTask().getStatus() == TaskLive)
+    					iorbPageFrame.setDirty(true);
     		}
     	
     	
@@ -97,15 +107,15 @@ public class DiskInterruptHandler extends IflDiskInterruptHandler
 		 * 6.
 		 */
     	
-    	if(iorb.getDeviceID() == SwapDeviceID && iorb.getThread().getTask().getStatus() == TaskLive)
-    		iorb.getPage().getFrame().setDirty(false);
+    	if(iorb.getDeviceID() == SwapDeviceID && iorbThread.getTask().getStatus() == TaskLive)
+    		iorbPageFrame.setDirty(false);
     	
     	/*
 		 * 7.
 		 */
     	
-    	if(iorb.getThread().getTask().getStatus() == TaskTerm && iorb.getThread().getTask() == iorb.getPage().getFrame().getReserved())
-    		iorb.getPage().getFrame().setUnreserved(iorb.getThread().getTask());
+    	if(iorbThread.getTask().getStatus() == TaskTerm && iorbThread.getTask() == iorbPageFrame.getReserved())
+    		iorbPageFrame.setUnreserved(iorbThread.getTask());
     	
     	/*
 		 * 8.
@@ -129,7 +139,7 @@ public class DiskInterruptHandler extends IflDiskInterruptHandler
     	/*
 		 * 11.
 		 */
-    	iorb.getThread().dispatch();
+    	iorbThread.dispatch();
     	
     }
 
